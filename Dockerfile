@@ -1,35 +1,35 @@
-FROM alpine:3.8
+FROM alpine:3.12
 MAINTAINER Friday Godswill <friday@hotels.ng>
 
-#Some weird variables 
+#Some weird variables
 ENV php_conf /etc/php7/php.ini
 ENV fpm_conf /etc/php7/php-fpm.d/www.conf
 
 
 # trust this project public key to trust the packages.
-ADD https://dl.bintray.com/php-alpine/key/php-alpine.rsa.pub /etc/apk/keys/php-alpine.rsa.pub
+ADD https://php.codecasts.rocks/php-alpine.rsa.pub /etc/apk/keys/php-alpine.rsa.pub
 
 # make sure you can use HTTPS
 RUN apk --update add ca-certificates
 
 #Install Basic Requirements for life
-RUN apk --update add supervisor bash nano nginx &&\
+RUN apk --update add supervisor bash nano git nginx &&\
 	mkdir -p /etc/nginx && \
     mkdir -p /run/nginx && \
     mkdir -p /etc/nginx/sites-available && \
     mkdir -p /etc/nginx/sites-enabled && \
     mkdir -p /var/log/supervisor && \
-    rm -Rf /var/www/* 
+    rm -Rf /var/www/*
 
 
 # add the repository, make sure you replace the correct versions if you want.
-RUN echo "@php https://dl.bintray.com/php-alpine/v3.8/php-7.3" >> /etc/apk/repositories
+RUN echo "@php https://dl.bintray.com/php-alpine/v3.12/php-7.4" >> /etc/apk/repositories
 
 # install php and some extensions
 # notice the @php is required to avoid getting default php packages from alpine instead.
 RUN apk add --update php@php
 RUN apk add --update php-mbstring@php php-fpm@php php-openssl@php php-phar@php php-json@php php-session@php
-RUN apk add --update php-bcmath@php php-pdo@php php-gd@php php-pdo_mysql@php 
+RUN apk add --update php-bcmath@php php-pdo@php php-gd@php php-pdo_mysql@php
 
 #Add other Junk as suggested by @fisayoafolayan
 RUN apk add --update php-bz2@php php-calendar@php php-ctype@php php-curl@php php-dba@php \
@@ -43,13 +43,13 @@ RUN apk add --update php-bz2@php php-calendar@php php-ctype@php php-curl@php php
  php-sysvmsg@php php-sysvsem@php php-sysvshm@php php-tidy@php php-wddx@php php-xml@php \
  php-xmlreader@php php-xsl@php php-zip@php php-zlib@php php-xmlrpc@php
 
-#Install Composer 
+#Install Composer
 RUN php7 -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
 php7 composer-setup.php --install-dir=/usr/bin --filename=composer && \
 php7 -r "unlink('composer-setup.php');"
 
 #Make php7 available as 'php'
-RUN  ln -s /usr/bin/php7 /usr/bin/php 
+RUN  ln -s /usr/bin/php7 /usr/bin/php
 
 #Configure Nginx to look at the correct directory for settings
 RUN sed -ie "s/conf.d/sites-enabled/g" /etc/nginx/nginx.conf
@@ -83,8 +83,8 @@ RUN sed -i \
 
 EXPOSE 443 80
 
-#remove default configs and replace 
-RUN rm /etc/nginx/nginx.conf 
+#remove default configs and replace
+RUN rm /etc/nginx/nginx.conf
 
 ADD init.sh /init.sh
 ADD conf/supervisord.conf /etc/supervisord.conf
